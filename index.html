@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Cairo:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* نفس الـ styles السابقة بالكامل */
         * {
             margin: 0;
             padding: 0;
@@ -357,6 +358,44 @@
             color: #ffb643;
             font-weight: bold;
         }
+
+        .api-key-section {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .api-key-section label {
+            display: block;
+            margin-bottom: 10px;
+            color: #ffd700;
+            font-weight: 600;
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .api-key-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .api-note {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -371,6 +410,10 @@
             const [result, setResult] = useState(null);
             const [error, setError] = useState(null);
             const [history, setHistory] = useState([]);
+            const [apiKey, setApiKey] = useState(() => {
+                // استرجاع المفتاح من localStorage إذا كان موجوداً
+                return localStorage.getItem('claude_api_key') || '';
+            });
             
             const videoRef = useRef(null);
             const canvasRef = useRef(null);
@@ -384,11 +427,21 @@
                 };
             }, []);
 
+            const handleApiKeyChange = (e) => {
+                const key = e.target.value;
+                setApiKey(key);
+                localStorage.setItem('claude_api_key', key);
+            };
+
             const startCamera = async () => {
                 try {
                     setError(null);
                     const stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { facingMode: 'environment' },
+                        video: { 
+                            facingMode: 'environment',
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        },
                         audio: false 
                     });
                     
@@ -398,7 +451,14 @@
                         setCameraActive(true);
                     }
                 } catch (err) {
-                    setError('لم نستطع الوصول للكاميرا. الرجاء التأكد من إعطاء الإذن للموقع باستخدام الكاميرا.');
+                    console.error('Camera error:', err);
+                    if (err.name === 'NotAllowedError') {
+                        setError('الرجاء السماح للموقع باستخدام الكاميرا. اضغط على أيقونة القفل في المتصفح واسمح بالكاميرا.');
+                    } else if (err.name === 'NotFoundError') {
+                        setError('لم نجد كاميرا في جهازك.');
+                    } else {
+                        setError('لم نستطع الوصول للكاميرا: ' + err.message);
+                    }
                 }
             };
 
@@ -414,6 +474,11 @@
             };
 
             const captureAndCount = async () => {
+                if (!apiKey.trim()) {
+                    setError('الرجاء إدخال مفتاح API الخاص بـ Claude أولاً');
+                    return;
+                }
+
                 if (!videoRef.current || !canvasRef.current) return;
 
                 try {
@@ -435,9 +500,11 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'x-api-key': apiKey.trim(),
+                            'anthropic-version': '2023-06-01'
                         },
                         body: JSON.stringify({
-                            model: 'claude-sonnet-4-20250514',
+                            model: 'claude-3-haiku-20240307',  // نموذج أسرع وأرخص
                             max_tokens: 1000,
                             messages: [{
                                 role: 'user',
@@ -452,7 +519,7 @@
                                     },
                                     {
                                         type: 'text',
-                                        text: `أنت عداد أغراض ذكي لشركة نقليات. قم بتحليل الصورة وعد جميع الأغراض والطرود الموجودة فيها.
+                                        text: `أنت عداد أغراض ذكي لشركة نقليات. قم بتحليل الصورة وعد جميع الأغراض والطرود والصناديق الظاهرة فيها.
 
 أرجع الرد بصيغة JSON فقط بدون أي نص إضافي أو علامات markdown:
 {
@@ -460,7 +527,7 @@
   "items": [
     {"name": "اسم_الغرض", "count": العدد}
   ],
-  "notes": "ملاحظات_إضافية"
+  "notes": "ملاحظات_إضافية_بالعربية"
 }
 
 إذا لم تجد أي أغراض، أرجع total_count: 0`
@@ -471,21 +538,53 @@
                     });
 
                     if (!response.ok) {
-                        throw new Error('فشل في تحليل الصورة');
+                        const errorData = await response.json().catch(() => ({}));
+                        console.error('API Error:', errorData);
+                        
+                        if (response.status === 401) {
+                            throw new Error('مفتاح API غير صالح. الرجاء التأكد من المفتاح.');
+                        } else if (response.status === 429) {
+                            throw new Error('تم تجاوز الحد المسموح من الطلبات. الرجاء الانتظار قليلاً.');
+                        } else {
+                            throw new Error(`خطأ في الخادم (${response.status}). الرجاء المحاولة لاحقاً.`);
+                        }
                     }
 
                     const data = await response.json();
+                    
+                    // استخراج النص من الرد
                     const textContent = data.content
                         .filter(item => item.type === 'text')
                         .map(item => item.text)
                         .join('');
 
-                    const cleanText = textContent.replace(/```json|```/g, '').trim();
-                    const parsed = JSON.parse(cleanText);
+                    // تنظيف النص من أي علامات markdown
+                    const cleanText = textContent.replace(/```json\n?|```\n?/g, '').trim();
+                    
+                    // محاولة تحليل JSON
+                    let parsed;
+                    try {
+                        parsed = JSON.parse(cleanText);
+                    } catch (parseError) {
+                        console.error('JSON Parse Error:', cleanText);
+                        // محاولة استخراج JSON باستخدام regex
+                        const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            parsed = JSON.parse(jsonMatch[0]);
+                        } else {
+                            throw new Error('لم نستطع فهم نتيجة التحليل. الرجاء المحاولة مرة أخرى.');
+                        }
+                    }
 
                     const newResult = {
                         ...parsed,
-                        timestamp: new Date().toLocaleString('ar-IQ'),
+                        timestamp: new Date().toLocaleString('ar-IQ', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }),
                         image: imageData
                     };
 
@@ -494,7 +593,7 @@
                     
                 } catch (err) {
                     console.error('Error:', err);
-                    setError('حدث خطأ في عد الأغراض. الرجاء المحاولة مرة أخرى.');
+                    setError(err.message || 'حدث خطأ في عد الأغراض. الرجاء المحاولة مرة أخرى.');
                 } finally {
                     setLoading(false);
                 }
@@ -513,12 +612,29 @@
                                 <span className="icon">📷</span>
                                 التقاط الصورة
                             </h2>
+
+                            {/* قسم إدخال مفتاح API */}
+                            <div className="api-key-section">
+                                <label>🔑 مفتاح Claude API:</label>
+                                <input
+                                    type="password"
+                                    className="api-key-input"
+                                    placeholder="sk-ant-api03-xxxxxxxxxxxxx"
+                                    value={apiKey}
+                                    onChange={handleApiKeyChange}
+                                    dir="ltr"
+                                />
+                                <p className="api-note">
+                                    أدخل مفتاح API من Anthropic Console. سيتم حفظه تلقائياً.
+                                </p>
+                            </div>
                             
                             <div className="video-container">
                                 <video 
                                     ref={videoRef} 
                                     autoPlay 
                                     playsInline
+                                    muted
                                     style={{ display: cameraActive ? 'block' : 'none' }}
                                 />
                                 <canvas ref={canvasRef} />
