@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نقليات خيرات الرمادي - عداد الأغراض الذكي</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Cairo:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(233, 69, 96, 0.4);
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .header h1 {
+            font-family: 'Cairo', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        @media (min-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 {
+            font-family: 'Cairo', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #ff6b6b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .camera-section {
+            position: relative;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #000;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+
+        video, canvas {
+            width: 100%;
+            display: block;
+            max-height: 400px;
+            object-fit: cover;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 18px 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(245, 87, 108, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: #1a1a2e;
+            box-shadow: 0 5px 15px rgba(67, 233, 123, 0.4);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(67, 233, 123, 0.6);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-section {
+            min-height: 400px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, rgba(67, 233, 123, 0.1) 0%, rgba(56, 249, 215, 0.1) 100%);
+            border: 2px solid rgba(67, 233, 123, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .count-display {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .count-number {
+            font-size: 5rem;
+            font-weight: 800;
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(67, 233, 123, 0.5);
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+        }
+
+        .count-label {
+            font-size: 1.5rem;
+            color: #38f9d7;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        .items-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-right: 4px solid #ff6b6b;
+        }
+
+        .item-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .item-count {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #43e97b;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #ff6b6b;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(233, 69, 96, 0.2);
+            border: 2px solid #e94560;
+            color: #ff6b6b;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .icon {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+        }
+
+        .tips {
+            background: rgba(255, 182, 67, 0.1);
+            border: 1px solid rgba(255, 182, 67, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .tips h3 {
+            color: #ffb643;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .tips ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tips li {
+            padding: 8px 0;
+            padding-right: 25px;
+            position: relative;
+        }
+
+        .tips li::before {
+            content: '✓';
+            position: absolute;
+            right: 0;
+            color: #ffb643;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+
+        function App() {
+            const [cameraActive, setCameraActive] = useState(false);
+            const [loading, setLoading] = useState(false);
+            const [result, setResult] = useState(null);
+            const [error, setError] = useState(null);
+            const [history, setHistory] = useState([]);
+            
+            const videoRef = useRef(null);
+            const canvasRef = useRef(null);
+            const streamRef = useRef(null);
+
+            useEffect(() => {
+                return () => {
+                    if (streamRef.current) {
+                        streamRef.current.getTracks().forEach(track => track.stop());
+                    }
+                };
+            }, []);
+
+            const startCamera = async () => {
+                try {
+                    setError(null);
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { facingMode: 'environment' },
+                        audio: false 
+                    });
+                    
+                    if (videoRef.current) {
+                        videoRef.current.srcObject = stream;
+                        streamRef.current = stream;
+                        setCameraActive(true);
+                    }
+                } catch (err) {
+                    setError('لم نستطع الوصول للكاميرا. الرجاء التأكد من إعطاء الإذن للموقع باستخدام الكاميرا.');
+                }
+            };
+
+            const stopCamera = () => {
+                if (streamRef.current) {
+                    streamRef.current.getTracks().forEach(track => track.stop());
+                    streamRef.current = null;
+                }
+                if (videoRef.current) {
+                    videoRef.current.srcObject = null;
+                }
+                setCameraActive(false);
+            };
+
+            const captureAndCount = async () => {
+                if (!videoRef.current || !canvasRef.current) return;
+
+                try {
+                    setLoading(true);
+                    setError(null);
+
+                    const video = videoRef.current;
+                    const canvas = canvasRef.current;
+                    const context = canvas.getContext('2d');
+
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    context.drawImage(video, 0, 0);
+
+                    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+                    const base64Data = imageData.split(',')[1];
+
+                    const response = await fetch('https://api.anthropic.com/v1/messages', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            model: 'claude-sonnet-4-20250514',
+                            max_tokens: 1000,
+                            messages: [{
+                                role: 'user',
+                                content: [
+                                    {
+                                        type: 'image',
+                                        source: {
+                                            type: 'base64',
+                                            media_type: 'image/jpeg',
+                                            data: base64Data
+                                        }
+                                    },
+                                    {
+                                        type: 'text',
+                                        text: `أنت عداد أغراض ذكي لشركة نقليات. قم بتحليل الصورة وعد جميع الأغراض والطرود الموجودة فيها.
+
+أرجع الرد بصيغة JSON فقط بدون أي نص إضافي أو علامات markdown:
+{
+  "total_count": العدد_الإجمالي_للأغراض,
+  "items": [
+    {"name": "اسم_الغرض", "count": العدد}
+  ],
+  "notes": "ملاحظات_إضافية"
+}
+
+إذا لم تجد أي أغراض، أرجع total_count: 0`
+                                    }
+                                ]
+                            }]
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('فشل في تحليل الصورة');
+                    }
+
+                    const data = await response.json();
+                    const textContent = data.content
+                        .filter(item => item.type === 'text')
+                        .map(item => item.text)
+                        .join('');
+
+                    const cleanText = textContent.replace(/```json|```/g, '').trim();
+                    const parsed = JSON.parse(cleanText);
+
+                    const newResult = {
+                        ...parsed,
+                        timestamp: new Date().toLocaleString('ar-IQ'),
+                        image: imageData
+                    };
+
+                    setResult(newResult);
+                    setHistory(prev => [newResult, ...prev].slice(0, 10));
+                    
+                } catch (err) {
+                    console.error('Error:', err);
+                    setError('حدث خطأ في عد الأغراض. الرجاء المحاولة مرة أخرى.');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>🚚 نقليات خيرات الرمادي</h1>
+                        <p>عداد الأغراض الذكي بتقنية الذكاء الاصطناعي</p>
+                    </div>
+
+                    <div className="main-content">
+                        <div className="card camera-section">
+                            <h2>
+                                <span className="icon">📷</span>
+                                التقاط الصورة
+                            </h2>
+                            
+                            <div className="video-container">
+                                <video 
+                                    ref={videoRef} 
+                                    autoPlay 
+                                    playsInline
+                                    style={{ display: cameraActive ? 'block' : 'none' }}
+                                />
+                                <canvas ref={canvasRef} />
+                                {!cameraActive && (
+                                    <div className="empty-state">
+                                        <svg fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                                        </svg>
+                                        <p>الكاميرا غير مفعلة</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="controls">
+                                {!cameraActive ? (
+                                    <button 
+                                        className="btn btn-primary" 
+                                        onClick={startCamera}
+                                    >
+                                        🎥 تشغيل الكاميرا
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button 
+                                            className="btn btn-success" 
+                                            onClick={captureAndCount}
+                                            disabled={loading}
+                                        >
+                                            {loading ? '⏳ جاري العد...' : '📸 التقط واحسب'}
+                                        </button>
+                                        <button 
+                                            className="btn btn-primary" 
+                                            onClick={stopCamera}
+                                            disabled={loading}
+                                        >
+                                            ⏹️ إيقاف الكاميرا
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+
+                            {error && (
+                                <div className="error">
+                                    ⚠️ {error}
+                                </div>
+                            )}
+
+                            <div className="tips">
+                                <h3>💡 نصائح للحصول على أفضل نتيجة</h3>
+                                <ul>
+                                    <li>تأكد من الإضاءة الجيدة</li>
+                                    <li>اجعل جميع الأغراض ظاهرة بوضوح</li>
+                                    <li>ابتعد قليلاً لتظهر كل الأغراض</li>
+                                    <li>تجنب الظلال الكثيرة</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div className="card results-section">
+                            <h2>
+                                <span className="icon">📊</span>
+                                النتائج
+                            </h2>
+
+                            {loading && (
+                                <div className="loading">
+                                    <div className="spinner"></div>
+                                    <p>جاري تحليل الصورة وعد الأغراض...</p>
+                                </div>
+                            )}
+
+                            {!loading && !result && (
+                                <div className="empty-state">
+                                    <svg fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                        <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    <p>لم يتم عد الأغراض بعد</p>
+                                    <p>التقط صورة لبدء العد</p>
+                                </div>
+                            )}
+
+                            {!loading && result && (
+                                <div className="result-card">
+                                    <div className="count-display">
+                                        <div className="count-number">{result.total_count}</div>
+                                        <div className="count-label">إجمالي الأغراض</div>
+                                    </div>
+
+                                    {result.items && result.items.length > 0 && (
+                                        <>
+                                            <h3 style={{ marginTop: '30px', marginBottom: '15px', color: '#38f9d7' }}>
+                                                تفاصيل الأغراض:
+                                            </h3>
+                                            <ul className="items-list">
+                                                {result.items.map((item, index) => (
+                                                    <li key={index} className="item">
+                                                        <span className="item-name">{item.name}</span>
+                                                        <span className="item-count">{item.count}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </>
+                                    )}
+
+                                    {result.notes && (
+                                        <div style={{ 
+                                            marginTop: '20px', 
+                                            padding: '15px', 
+                                            background: 'rgba(255,255,255,0.05)',
+                                            borderRadius: '10px',
+                                            fontSize: '0.95rem',
+                                            color: 'rgba(255,255,255,0.8)'
+                                        }}>
+                                            📝 {result.notes}
+                                        </div>
+                                    )}
+
+                                    <div style={{ 
+                                        marginTop: '20px', 
+                                        padding: '10px',
+                                        textAlign: 'center',
+                                        fontSize: '0.9rem',
+                                        color: 'rgba(255,255,255,0.6)'
+                                    }}>
+                                        🕐 {result.timestamp}
+                                    </div>
+                                </div>
+                            )}
+
+                            {history.length > 1 && (
+                                <div style={{ marginTop: '30px' }}>
+                                    <h3 style={{ marginBottom: '15px', color: '#ff6b6b' }}>
+                                        📜 السجل الأخير
+                                    </h3>
+                                    {history.slice(1, 4).map((item, index) => (
+                                        <div 
+                                            key={index} 
+                                            style={{
+                                                background: 'rgba(255,255,255,0.03)',
+                                                padding: '12px',
+                                                borderRadius: '8px',
+                                                marginBottom: '10px',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                fontSize: '0.9rem'
+                                            }}
+                                        >
+                                            <span>{item.timestamp}</span>
+                                            <span style={{ 
+                                                color: '#43e97b', 
+                                                fontWeight: 'bold',
+                                                fontSize: '1.1rem'
+                                            }}>
+                                                {item.total_count} غرض
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
